@@ -4,3 +4,7 @@ spring:
   output:
     ansi:
       enabled: always
+  main:
+    lazy-initialization: true
+  r2dbc:
+    url: jdbc:postgresql://127.0.0.1:5432/postgres

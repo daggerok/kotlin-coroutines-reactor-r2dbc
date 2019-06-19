@@ -1,10 +1,15 @@
-package com.github.daggerok.app
+package com.github.daggerok
 
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
+import org.springframework.context.support.beans
 import org.springframework.data.annotation.Id
+import org.springframework.data.r2dbc.core.DatabaseClient
+import org.springframework.data.r2dbc.core.asType
+import org.springframework.data.r2dbc.core.await
+import org.springframework.data.r2dbc.core.awaitOneOrNull
 import org.springframework.data.r2dbc.repository.query.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.web.bind.annotation.*
@@ -38,39 +43,6 @@ data class OrganizationDTO(var id: Long?, var name: String) {
   }
 }
 
-@Configuration
-class EmployeeConfiguration {
-  /*
-    @Bean // optional: 1
-    fun factory(client: DatabaseClient, strategy: ReactiveDataAccessStrategy): R2dbcRepositoryFactory {
-      //val context = RelationalMappingContext()
-      //context.afterPropertiesSet()
-      //val strategy = DefaultReactiveDataAccessStrategy(PostgresDialect.INSTANCE)
-      return R2dbcRepositoryFactory(client, strategy)
-    }
-    @Bean // optional: 2
-    fun databaseClient(factory: ConnectionFactory): DatabaseClient {
-      return DatabaseClient.builder().connectionFactory(factory).build()
-    }
-    @Bean // optional: 3
-    fun repository(factory: R2dbcRepositoryFactory): EmployeeRepository =
-      factory.getRepository(EmployeeRepository::class.java)
-      //factory.getRepository<EmployeeRepository>(EmployeeRepository::class.java)
-  */
-  @Bean
-  fun connectionFactory() = PostgresqlConnectionFactory(
-      PostgresqlConnectionConfiguration
-          .builder()
-          .host("127.0.0.1")
-          .port(5432)
-          .database("postgres")
-          .username("postgres")
-          .password("postgres")
-          //.schema("schema1")
-          .build()
-  )
-}
-
 @RestController
 @RequestMapping("/employees")
 class EmployeeController(private val repository: EmployeeRepository) {
@@ -86,4 +58,40 @@ class EmployeeController(private val repository: EmployeeRepository) {
 
   @PostMapping
   fun add(@RequestBody employee: Employee): Mono<Employee> = repository.save(employee)
+}
+
+class CoroutinesRepository(private val databaseClient: DatabaseClient) {
+  suspend fun findById(id: Long): Employee? = databaseClient
+      .execute()
+      .sql("SELECT * FROM employees WHERE id = :name")
+      .bind("name", id)
+      .asType<Employee>()
+      .fetch()
+      .awaitOneOrNull()
+}
+
+@SpringBootApplication
+class App
+
+fun main() {
+  runApplication<App> {
+    addInitializers(beans {
+      bean {
+        PostgresqlConnectionFactory(
+            PostgresqlConnectionConfiguration
+                .builder()
+                .host("127.0.0.1")
+                .port(5432)
+                .database("postgres")
+                .username("postgres")
+                .password("postgres")
+                //.schema("schema1")
+                .build()
+        )
+      }
+      bean {
+        CoroutinesRepository(ref())
+      }
+    })
+  }
 }
