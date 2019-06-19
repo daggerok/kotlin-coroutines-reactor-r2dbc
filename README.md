@@ -24,3 +24,5 @@ http :8080/api/coroutines/employees/not-found
 ```
 
 NOTE: _This project has been based on [GitHub: daggerok/main-starter](https://github.com/daggerok/main-starter)_
+
+Motivated by this: [YouTube: Spring Tips: Spring's Support for Kotlin Coroutines](https://www.youtube.com/watch?v=3xu5xttCrVk)
