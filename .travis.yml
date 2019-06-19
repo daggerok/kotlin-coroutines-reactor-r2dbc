@@ -1,0 +1,81 @@
+notifications:
+  email: false
+git:
+  quiet: true
+  depth: 1
+env:
+  global:
+    - TERM=dumb
+language: java
+jdk: openjdk8
+python: 3
+services:
+  - docker
+install: true
+addons:
+  apt:
+    update: true
+    packages:
+      - zip
+      - unzip
+      - curl
+      - bash
+      - python3-dev
+      - python3-pip
+      - python3-six
+      - python3-setuptools
+before_install:
+  - export PATH=$HOME/.local/bin:$PATH
+  - pip3 install --user $(whoami) --upgrade pip >/dev/null # pip3 -> pip
+  - pip install --user $(whoami) --upgrade httpie >/dev/null 2>&1
+  - http --version --debug
+  - docker-compose -v
+  - source <(curl -fsSL https://raw.github.com/daggerok/bash-functions/master/main.bash)
+  - stop_any 5432 5672 27017 8080 8000 8081 80 80
+before_script:
+  - stop_any 5432
+  - ./mvnw docker:start
+  - ./mvnw process-resources flyway:migrate flyway:info
+after_script:
+  - ./mvnw docker:stop
+  - stop_any 5432
+jobs:
+  include:
+    # java 8
+    - stage: openjdk8
+      jdk: openjdk8
+      name: "Maven Java 8 Build"
+      script:
+        - cd $TRAVIS_BUILD_DIR && ./mvnw
+        - java -jar $TRAVIS_BUILD_DIR/target/*-SNAPSHOT.jar &
+        - wait_for 8080
+        - http :8080/employees name=Maksimko salary=999999
+        - http :8080/employees name='Ololo Trololo' salary=-999
+        - http :8080/employees
+        - stop_any 80 8080
+    - stage: openjdk8
+      jdk: openjdk8
+      name: "Maven Java 8 Updates"
+      script: cd $TRAVIS_BUILD_DIR && ./mvnw versions:display-property-updates
+    # java 11
+    - stage: openjdk11
+      jdk: openjdk11
+      name: "Maven Java 11 Build"
+      script:
+        - cd $TRAVIS_BUILD_DIR ; ./mvnw
+        - java -jar $TRAVIS_BUILD_DIR/target/*-SNAPSHOT.jar &
+        - wait_for 8080
+        - http :8080/employees name=Maksimko salary=123
+        - http :8080/employees name='Ololo Trololo' salary=-0
+        - http :8080/employees
+        - stop_any 80 8080
+    - stage: openjdk11
+      jdk: openjdk11
+      name: "Maven Java 11 Updates"
+      script: cd $TRAVIS_BUILD_DIR ; ./mvnw versions:display-property-updates
+cache:
+  directories:
+    - ~/.docker
+    - ~/.m2
+  packages: true
+  pip: true

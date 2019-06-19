@@ -1,0 +1,43 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+
+  <id>sources</id>
+  <includeBaseDirectory>true</includeBaseDirectory>
+
+  <formats>
+    <format>zip</format>
+  </formats>
+
+  <fileSets>
+    <fileSet>
+      <directory>${project.basedir}/.mvn</directory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src</directory>
+    </fileSet>
+  </fileSets>
+
+  <files>
+    <file>
+      <source>${project.basedir}/.gitignore</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>${project.basedir}/pom.xml</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>${project.basedir}/README.md</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>${project.basedir}/mvnw</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>${project.basedir}/mvnw.cmd</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+  </files>
+</assembly>
