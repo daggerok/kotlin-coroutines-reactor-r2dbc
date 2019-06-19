@@ -52,6 +52,9 @@ jobs:
         - http :8080/employees name=Maksimko salary=999999
         - http :8080/employees name='Ololo Trololo' salary=-999
         - http :8080/employees
+        - http :8080/api/coroutines/employees/not-found
+        - http :8080/api/coroutines/employees
+        - http :8080/api/coroutines/employees/1
         - stop_any 80 8080
     - stage: openjdk8
       jdk: openjdk8
@@ -68,6 +71,9 @@ jobs:
         - http :8080/employees name=Maksimko salary=123
         - http :8080/employees name='Ololo Trololo' salary=-0
         - http :8080/employees
+        - http :8080/api/coroutines/employees/not-found
+        - http :8080/api/coroutines/employees
+        - http :8080/api/coroutines/employees/1
         - stop_any 80 8080
     - stage: openjdk11
       jdk: openjdk11

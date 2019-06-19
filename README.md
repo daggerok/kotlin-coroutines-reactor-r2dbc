@@ -10,8 +10,15 @@ Kotlin coroutines Reactor Spring Boot Webflux R2DBC Postgres Flyway Maven exampl
 
 ./mvnw
 java -jar target/*-SNAPSHOT.jar
+
+# regular kotlin webflux
 http :8080/employees name=ololo salary=123
 http :8080/employees
+
+# kotlin-coroutines-reactor api
+http :8080/api/coroutines/employees name=ololo salary=123
+http :8080/api/coroutines/employees/1
+http :8080/api/coroutines/employees/not-found
 
 ./mvnw docker:stop
 ```

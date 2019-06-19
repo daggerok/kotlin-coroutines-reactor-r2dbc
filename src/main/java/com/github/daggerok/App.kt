@@ -2,19 +2,22 @@ package com.github.daggerok
 
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.flow.asPublisher
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.support.beans
 import org.springframework.data.annotation.Id
-import org.springframework.data.r2dbc.core.DatabaseClient
-import org.springframework.data.r2dbc.core.asType
-import org.springframework.data.r2dbc.core.await
-import org.springframework.data.r2dbc.core.awaitOneOrNull
+import org.springframework.data.r2dbc.core.*
 import org.springframework.data.r2dbc.repository.query.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.server.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.lang.RuntimeException
 
 data class Employee(
     var name: String,
@@ -63,16 +66,27 @@ class EmployeeController(private val repository: EmployeeRepository) {
 class CoroutinesRepository(private val databaseClient: DatabaseClient) {
   suspend fun findById(id: Long): Employee? = databaseClient
       .execute()
-      .sql("SELECT * FROM employees WHERE id = :name")
+      .sql("SELECT * FROM employee WHERE id = :name")
       .bind("name", id)
       .asType<Employee>()
       .fetch()
       .awaitOneOrNull()
+
+  @FlowPreview
+  @ExperimentalCoroutinesApi
+  suspend fun findAll(): Flow<Employee> = databaseClient
+      .select()
+      .from("employee")
+      .asType<Employee>()
+      .fetch()
+      .flow()
 }
 
 @SpringBootApplication
 class App
 
+@FlowPreview
+@ExperimentalCoroutinesApi
 fun main() {
   runApplication<App> {
     addInitializers(beans {
@@ -91,6 +105,26 @@ fun main() {
       }
       bean {
         CoroutinesRepository(ref())
+      }
+      bean {
+        coRouter {
+          val repository = ref<CoroutinesRepository>()
+          "/api/coroutines/".nest {
+            GET("/employees/{id}") {
+              val id = it.pathVariable("id").toLongOrNull()
+                  ?: return@GET notFound().buildAndAwait()
+              val employee = repository.findById(id)
+                  ?: return@GET notFound().buildAndAwait()
+              ok().bodyAndAwait(employee)
+            }
+            GET("/employees") {
+              ok().bodyFlowAndAwait(repository.findAll())
+            }
+          }
+          GET("/**") {
+            ok().bodyFlowAndAwait(repository.findAll())
+          }
+        }
       }
     })
   }
