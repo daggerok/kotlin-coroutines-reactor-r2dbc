@@ -25,4 +25,7 @@ http :8080/api/coroutines/employees/not-found
 
 NOTE: _This project has been based on [GitHub: daggerok/main-starter](https://github.com/daggerok/main-starter)_
 
-Motivated by this: [YouTube: Spring Tips: Spring's Support for Kotlin Coroutines](https://www.youtube.com/watch?v=3xu5xttCrVk)
+Motivated by:
+
+- [Going Reactive with Spring, Coroutines and Kotlin Flow by SÉBASTIEN DELEUZE](https://spring.io/blog/2019/04/12/going-reactive-with-spring-coroutines-and-kotlin-flow)
+- [YouTube: Spring Tips: Spring's Support for Kotlin Coroutines](https://www.youtube.com/watch?v=3xu5xttCrVk)
