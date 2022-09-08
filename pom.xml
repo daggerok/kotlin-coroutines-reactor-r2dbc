@@ -75,7 +75,7 @@
     <postgres.docker.wait.time>10000</postgres.docker.wait.time>
     <postgres.docker.wait.log>PostgreSQL init process complete</postgres.docker.wait.log>
     <!-- postgres versions -->
-    <postgres.version>42.2.5</postgres.version>
+    <postgres.version>42.4.1</postgres.version>
   </properties>
 
   <dependencyManagement>
